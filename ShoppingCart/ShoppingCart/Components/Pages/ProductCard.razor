@@ -1,0 +1,59 @@
+﻿@page "/ProductCard"
+@using ShoppingCart.Modal
+@using ShoppingCart.SharedService
+@rendermode InteractiveServer
+@inject ProductShareService sharedservice
+@using ShoppingCart.Services
+@inject ProductServices productservice
+@inject NavigationManager navigate
+
+<prodcutBandge />
+
+<style>
+    .offers {
+        background-color: red;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 5px;
+        padding: 1px 8px;
+    }
+
+    .del-price {
+        font-size: 0.8em; /* Adjust size as needed */
+        vertical-align: super;
+    }
+</style>
+
+<div class="card" style="width: 18rem; margin: 7px; cursor: pointer; border-radius: 15px;" @onclick="() => ProductDetail(product.ProductId)">
+    <img src="@(product.ProductImg)" class="card-img-top" style="width: 285px; height: 278px; border-radius: 15px 15px 0 0;" alt="...">
+    <div class="card-body">
+        <h5 class="card-title">@product.Title</h5>
+        <p class="card-text" style="height: 57px;">@product.ProductDescription</p>
+        <div class="" style="display:flex; justify-content:space-between; align-content:baseline;">
+            <p class="card-text" style="color: firebrick; font-size:14px;">
+                <del class="del-price" style="font-size:10px;">pkr @DoublePrice</del> PKR @product.ProductPrice
+            </p>
+            <p class="card-text offers">save 50%</p>
+        </div>
+
+        @* <button class="btn btn-primary" @onclick="() => AddtoCart(product)">Add to Cart</button> *@
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Product product { get; set; }
+
+    
+
+    public void ProductDetail(int id)
+    {
+        navigate.NavigateTo($"/ProductDetailpage/{id}");
+    }
+
+    private double DoublePrice => product.ProductPrice * 2;
+
+    
+}

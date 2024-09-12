@@ -1,0 +1,69 @@
+﻿@page "/Navbar"
+@using ShoppingCart.Modal
+@using ShoppingCart.SharedService
+@inject ProductShareService sharedservice
+@using ShoppingCart.Services
+@rendermode InteractiveServer
+@inject ProductServices productservice
+@inject NavigationManager navigate
+
+
+<div style="position:relative;">
+<div class="containe d-flex justify-content-center align-items-center" style="font-weight:700; background-color:lightgreen; height:60px;">UP TO 60% OFF</div>
+<nav class="navbar navbar-expand-lg navbar-light bg-body-tertiary">
+    <div class="container-fluid">
+        <button data-mdb-collapse-init
+                class="navbar-toggler"
+                type="button"
+                data-mdb-target="#navbarLeftAlignExample"
+                aria-controls="navbarLeftAlignExample"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarLeftAlignExample">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/"  @onclick="() => GOToHome()">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="ContactUs">Contact Us</a>
+                </li>
+                        <li class="nav-item dropdown">
+                <a data-mdb-dropdown-init
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                aria-expanded="true">
+                Categories
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li>
+                <a class="dropdown-item" href="#">Action</a>
+                </li>
+                <li>
+                <a class="dropdown-item" href="#">Another action</a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                <a class="dropdown-item" href="#">Something else here</a>
+                </li>
+                </ul>
+                </li> 
+                <li class="nav-item">
+                    <a class="nav-link disabled">Disabled</a>
+                </li>
+                <li><ProdcutBandge /></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+</div>
+@code {
+    public void GOToHome()
+    {
+        navigate.NavigateTo("/");
+    }
+}
