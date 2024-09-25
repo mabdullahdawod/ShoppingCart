@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject ProductShareService sharedservice
 @using ShoppingCart.Services
+@using ShoppingCartShared.DTO
 @inject ProductServices productservice
 @inject NavigationManager navigate
 
@@ -27,7 +28,7 @@
 </style>
 
 <div class="card" style="width: 18rem; margin: 7px; cursor: pointer; border-radius: 15px;" @onclick="() => ProductDetail(product.ProductId)">
-    <img src="@(product.ProductImg)" class="card-img-top" style="width: 285px; height: 278px; border-radius: 15px 15px 0 0;" alt="...">
+    <img src="@(product.ProductImgUrl)" class="card-img-top" style="width: 285px; height: 278px; border-radius: 15px 15px 0 0;" alt="...">
     <div class="card-body">
         <h5 class="card-title">@product.Title</h5>
         <p class="card-text" style="height: 57px;">@product.ProductDescription</p>
@@ -44,10 +45,10 @@
 
 @code {
     [Parameter]
-    public Product product { get; set; }
+    public ProductDTO product { get; set; }
 
     
-
+        
     public void ProductDetail(int id)
     {
         navigate.NavigateTo($"/ProductDetailpage/{id}");

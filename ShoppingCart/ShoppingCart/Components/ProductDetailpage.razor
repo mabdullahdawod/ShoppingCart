@@ -6,8 +6,9 @@
 @rendermode InteractiveServer
 @inject ProductServices productservice
 @using ShoppingCart.Components.Pages
-
-
+@using ShoppingCartShared.DTO
+@inject NavigationManager navigation
+@inject HttpClient http
 
 <style>
     .product-image {
@@ -26,90 +27,104 @@
 
         .thumbnail:hover, .thumbnail.active {
             opacity: 1;
-        }</style>
+        }
+</style>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-@* 
-@if (products != null && products.Any())
-{ *@
 
-    <Navbar/>
+<Navbar />
 
-    <div class="container mt-5">
-        <div class="row">
-            <!-- Product Images -->
-            <div class="col-md-6 mb-4">
-                <img src="@product?.ProductImg" alt="Product" class="img-fluid rounded mb-3 product-image" id="mainImage">
-                <div class="d-flex justify-content-between">
-                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 1" class="thumbnail rounded active" onclick="changeImage(event, this.src)">
-                    <img src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwzfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 2" class="thumbnail rounded" onclick="changeImage(event, this.src)">
-                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 3" class="thumbnail rounded" onclick="changeImage(event, this.src)">
-                    <img src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwzfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 4" class="thumbnail rounded" onclick="changeImage(event, this.src)">
-                </div>
-            </div>
+<div class="container mt-5">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <!-- Main Image -->
+            <img src="@product?.ProductImgUrl" alt="Product" class="img-fluid rounded mb-3 product-image" id="mainImage">
 
-            <!-- Product Details -->
-            <div class="col-md-6">
-                <h2 class="mb-3">@product?.Title</h2>
-                <p class="text-muted mb-4">SKU: WH1000XM4</p>
-                <div class="mb-3">
-                    <span class="h4 me-2" style="color:red">PKR @product?.ProductPrice</span>
-                    <span class="text-muted"><s>PKR 399.9</s></span>
-                </div>
-                <div class="mb-3">
-                    <i class="bi bi-star-fill text-warning"></i>
-                    <i class="bi bi-star-fill text-warning"></i>
-                    <i class="bi bi-star-fill text-warning"></i>
-                    <i class="bi bi-star-fill text-warning"></i>
-                    <i class="bi bi-star-half text-warning"></i>
-                    <span class="ms-2">4.5 (120 reviews)</span>
-                </div>
-                <p class="mb-4">
-                    @product?.ProductDescription
-                </p>
-                <div class="mb-4">
-                    <h5>Color:</h5>
-                    <div class="btn-group" role="group" aria-label="Color selection">
-                        <input type="radio" class="btn-check" name="color" id="black" autocomplete="off" checked>
-                        <label class="btn btn-outline-dark" for="black">Black</label>
-                        <input type="radio" class="btn-check" name="color" id="silver" autocomplete="off">
-                        <label class="btn btn-outline-secondary" for="silver">Silver</label>
-                        <input type="radio" class="btn-check" name="color" id="blue" autocomplete="off">
-                        <label class="btn btn-outline-primary" for="blue">Blue</label>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="quantity" class="form-label">Quantity:</label>
-                    <input type="number" class="form-control" id="quantity" value="1" min="1" style="width: 80px;">
-                </div>
-            <button class="btn btn-primary btn-lg mb-3 me-2" @onclick="() => AddtoCart(product)">
-                    <i class="bi bi-cart-plus"></i> Add to Cart
-                </button>
-                <button class="btn btn-outline-secondary btn-lg mb-3">
-                    <i class="bi bi-heart"></i> Add to Wishlist
-                </button>
-                <div class="mt-4">
-                    <h5>Key Features:</h5>
-                    <ul>
-                        <li>Industry-leading noise cancellation</li>
-                        <li>30-hour battery life</li>
-                        <li>Touch sensor controls</li>
-                        <li>Speak-to-chat technology</li>
-                    </ul>
-                </div>
+            <div class="d-flex justify-content-between">
+                <!-- Thumbnails -->
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 1" class="thumbnail rounded active" onclick="changeImage(this.src)">
+                <img src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwzfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 2" class="thumbnail rounded" onclick="changeImage(this.src)">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 3" class="thumbnail rounded" onclick="changeImage(this.src)">
+                <img src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHwzfHxoZWFkcGhvbmV8ZW58MHwwfHx8MTcyMTMwMzY5MHww&ixlib=rb-4.0.3&q=80&w=1080" alt="Thumbnail 4" class="thumbnail rounded" onclick="changeImage(this.src)">
             </div>
         </div>
-    <div class="Title-bar w-100 h-100" style="background-color:lightcoral">
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <h2 class="mb-3">@product?.Title</h2>
+            <p class="text-muted mb-4">SKU: WH1000XM4</p>
+            <div class="mb-3">
+                <span class="h4 me-2" style="color:red">PKR @product?.ProductPrice</span>
+                <span class="text-muted"><s>PKR 399.9</s></span>
+            </div>
+            <div class="mb-3">
+                <!-- Ratings -->
+                @for (int i = 0; i < 5; i++)
+                {
+                    <i class="bi @((i < 4) ? "bi-star-fill" : "bi-star-half") text-warning"></i>
+                }
+                <span class="ms-2">4.5 (120 reviews)</span>
+            </div>
+            <p class="mb-4">@product?.ProductDescription</p>
+            <div class="mb-4">
+                <h5>Color:</h5>
+                <div class="btn-group" role="group" aria-label="Color selection">
+                    <!-- Color Options -->
+                    @foreach (var color in new[] { "Black", "Silver", "Blue" })
+                    {
+                        <input type="radio" class="btn-check" name="color" id="@color.ToLower()" autocomplete="off" checked>
+                        <label class="btn btn-outline-@(color.ToLower())" for="@color.ToLower()">@color</label>
+                    }
+                </div>
+            </div>
+            <div class="quantity buttons_added mb-5">
+                <input id="minus" type="button" class="minus" value="-" @onclick="() => MinusValue(product)">
+                <input id="theInput" type="number" size="4" class="input-text qty text" value="@GetProductQuantity()" title="Qty" min="0" step="1">
+                <input id="plus" type="button" class="plus" value="+" @onclick="() => PlusValue(product)">
+            </div>
+            <button class="btn btn-primary btn-lg mb-3 me-2" @onclick="() => AddtoCart(product)">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+            </button>
+            <button class="btn btn-outline-secondary btn-lg mb-3">
+                <i class="bi bi-heart"></i> Add to Wishlist
+            </button>
+            <br />
+            <button class="btn btn-outline-secondary btn-lg mb-3 w-60">Continue Shopping</button>
+            <div class="mt-4">
+                <h5>Key Features:</h5>
+                <ul>
+                    <li>Industry-leading noise cancellation</li>
+                    <li>30-hour battery life</li>
+                    <li>Touch sensor controls</li>
+                    <li>Speak-to-chat technology</li>
+                </ul>
+            </div>
+        </div>
     </div>
-    </div>
-             
- 
+    <div class="Title-bar w-100 h-100" style="background-color:lightcoral"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function changeImage(src) {
+        document.getElementById('mainImage').src = src;
+        let thumbnails = document.querySelectorAll('.thumbnail');
+        thumbnails.forEach(thumbnail => {
+            thumbnail.classList.remove('active');
+        });
+        let activeThumbnail = Array.from(thumbnails).find(thumbnail => thumbnail.src === src);
+        if (activeThumbnail) {
+            activeThumbnail.classList.add('active');
+        }
+    }
+</script>
+
 @code {
-    private List<Product> products;
+    private List<ProductDTO> products;
     private bool isLoading = true;
-    public Product product;
+    public ProductDTO product;
 
     [Parameter]
     public string productId { get; set; }
@@ -118,10 +133,11 @@
     {
         try
         {
-            products = await productservice.GetProductsAsync();
+            products = await http.GetFromJsonAsync<List<ProductDTO>>("https://localhost:7153/Product");
+
             if (products.Any())
             {
-                product = products.Where(pro => pro.ProductId == Convert.ToInt32(productId)).FirstOrDefault();
+                product = products.FirstOrDefault(pro => pro.ProductId == Convert.ToInt32(productId));
             }
         }
         catch (Exception ex)
@@ -131,19 +147,30 @@
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
 
-    public void AddtoCart(Product product)
+    private int GetProductQuantity()
+    {
+        return sharedservice.ShoppingCart.Where(s => s.ProductId == product?.ProductId).Count();
+    }
+
+    public void AddtoCart(ProductDTO product)
+    {   
+        sharedservice.AddProduct(product);
+        StateHasChanged();
+    }
+
+    public void MinusValue(ProductDTO product)
+    {
+        sharedservice.RemoveProduct(product);
+        StateHasChanged();
+    }
+
+    public void PlusValue(ProductDTO product)
     {
         sharedservice.AddProduct(product);
+        StateHasChanged();
     }
-    
-
-    // protected override Task OnInitializedAsync()
-    // {
-        
-    //     return base.OnInitializedAsync();
-    // }
 }
-    

@@ -1,0 +1,162 @@
+﻿@page "/AdProductDB"
+@using ShoppingCart.Modal
+@rendermode InteractiveServer
+@using ShoppingCartShared.DTO
+@inject HttpClient Http
+
+<div class="banner p-5" style="border-radius:50px; background: linear-gradient(132deg, rgb(255, 206, 236) 0.00%, rgb(151, 150, 240) 100.00%);">
+    <div class="container">
+
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <div>
+                    <label>Select Action:</label>
+
+                    <input type="radio" id="add" name="action" value="add" @onchange="@((e) => selectedAction = e.Value.ToString())" />
+                    <label for="add">Add Product</label>
+
+                    <input type="radio" id="delete" name="action" value="delete" @onchange="@((e) => selectedAction = e.Value.ToString())" />
+                    <label for="delete">Delete Product</label>
+
+                    <input type="radio" id="read" name="action" value="read" @onchange="@((e) => selectedAction = e.Value.ToString())" />
+                    <label for="read">Read Product by ID</label>
+
+                    <input type="radio" id="edit" name="action" value="edit" @onchange="@((e) => selectedAction = e.Value.ToString())" />
+                    <label for="edit">Edit Product</label>
+                </div>
+            </div>
+        </div>
+
+      @*   <div class="mb-3">
+            <p>You selected: <strong>@selectedAction</strong></p>
+        </div> *@
+
+        @if (selectedAction == "add")
+        {
+            <h4>Add Product Form:</h4>
+             RenderAddProductForm(); 
+        }
+        else if (selectedAction == "delete")
+        {
+            <h4>Delete Product Form:</h4>
+            @* RenderDeleteProductForm(); *@
+        }
+        else if (selectedAction == "read")
+        {
+            <h4>Read Product Form:</h4>
+            @* RenderReadProductForm(); *@
+        }
+        else if (selectedAction == "edit")
+        {
+            <h4>Edit Product Form:</h4>
+            @* RenderEditProductForm(); *@
+        }
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="productTitle" class="form-label">Title:</label>
+                        <InputText id="productTitle" @bind-Value="@product.Title" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="productDescription" class="form-label">Description:</label>
+                        <InputTextArea id="productDescription" @bind-Value="@product.ProductDescription" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="productCategory" class="form-label">Category:</label>
+                        <InputText id="productCategory" @bind-Value="@product.ProductCategory" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="productPrice" class="form-label">Price:</label>
+                        <InputNumber id="productPrice" @bind-Value="@product.ProductPrice" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="productImage" class="form-label">Image:</label>
+                        <InputFile id="productImage" OnChange="HandleFileSelected" class="form-control" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </EditForm>
+
+                @if (showSuccessMessage)
+                {
+                    <div class="alert alert-primary mt-3" role="alert">
+                        Product added successfully!
+                    </div>
+                }
+                else if (errorMessage != null)
+                {
+                    <div class="alert alert-danger mt-3" role="alert">
+                        @errorMessage
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-6">
+                <div>
+                    <img src="/pexels-photo-3183132.jpeg" alt="Product Image" class="img-fluid rounded" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string selectedAction = "add"; // Default action
+    private ProductDTO product = new ProductDTO();
+    private IBrowserFile selectedFile;
+    private bool showSuccessMessage = false;
+    private string errorMessage;
+
+    private void RenderAddProductForm()
+    {
+        // The Add Product form is already implemented in the main body
+    }
+
+
+
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.GetMultipleFiles(1).FirstOrDefault();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var content = new MultipartFormDataContent();
+
+        if (selectedFile != null)
+        {
+            var stream = selectedFile.OpenReadStream(); // Set max file size (10MB)
+            content.Add(new StreamContent(stream), "File", selectedFile.Name);
+        }
+
+        content.Add(new StringContent(product.Title), "Title");
+        content.Add(new StringContent(product.ProductDescription), "ProductDescription");
+        content.Add(new StringContent(product.ProductCategory), "ProductCategory");
+        content.Add(new StringContent(product.ProductPrice.ToString()), "ProductPrice");
+
+        var response = await Http.PostAsync("https://localhost:7153/Product", content); // Adjust the URL accordingly
+
+        if (response.IsSuccessStatusCode)
+        {
+            showSuccessMessage = true;
+            product = new ProductDTO();
+            errorMessage = null;
+        }
+        else
+        {
+            errorMessage = "An error occurred while adding the product.";
+            showSuccessMessage = false;
+        }
+    }
+}

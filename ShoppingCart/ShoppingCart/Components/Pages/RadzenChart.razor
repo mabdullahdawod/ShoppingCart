@@ -1,0 +1,37 @@
+﻿@page "/LISTPRO"
+@using Radzen;
+@using Radzen.Blazor;
+@using Microsoft.EntityFrameworkCore;
+@using ShoppingCart.Modal;
+@using ShoppingCartShared.DTO
+@using ShoppingCartShared.Dbcontext;
+@inject HttpClient http
+
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                Data="@Products" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(Product.ProductId)" Filterable="false" Title="ID" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn Title="Photo" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+            <Template Context="data">
+                <RadzenImage Path="@data.ProductImgUrl" class="rz-gravatar" AlternateText="@data.Title" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="@nameof(Product.Title)" Title="Job Title" Width="200px" />
+        <RadzenDataGridColumn Property="@nameof(Product.ProductDescription)" Title="Description" Width="160px" />
+        <RadzenDataGridColumn Property="@nameof(Product.ProductCategory)" Title="Category" Width="120px" />
+        <RadzenDataGridColumn Property="@nameof(Product.Quantity)" Title="Quantity" Width="160px" />
+        <RadzenDataGridColumn Property="@nameof(Product.ProductPrice)" Title="Price" FormatString="{0:C}" Width="160px" />
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    private List<ProductDTO> Products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        Products = await http.GetFromJsonAsync<List<ProductDTO>>("https://localhost:7153/Product");
+    }
+
+}

@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Hosting.Builder;
+using Microsoft.EntityFrameworkCore;
+using Radzen;
 using ShoppingCart.Client.Pages;
 using ShoppingCart.Components;
 using ShoppingCart.Services;
 using ShoppingCart.SharedService;
+using ShoppingCartShared.Dbcontext;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,17 +13,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+
+
 builder.Services.AddScoped<ProductServices>();
 builder.Services.AddSingleton<ProductShareService>();
-
-
-    //more code may be present here
-    builder.Services.AddBootstrapBlazor();
-
+builder.Services.AddRadzenComponents();
+builder.Services.AddBootstrapBlazor();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -28,16 +30,12 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
-
-
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

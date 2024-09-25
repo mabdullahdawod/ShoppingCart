@@ -5,7 +5,7 @@
 @inject ProductShareService sharedservice
 @inject NavigationManager navigate
 @inject IJSRuntime JSRuntime
-@using BlazorBootstrap;
+@using ShoppingCartShared.DTO
 <Navbar />
 
 <style>
@@ -31,62 +31,66 @@
     }
 </style>
 
-
-<h3>Added Products</h3>
+<h3 class="fw-bold">Your Cart</h3>
 <div>Total Price: <span style="color:red; font-weight:bold; font-size:32px;">PKR @TotalPrice</span></div>
 
-@if (groupedProducts.Any())
-{
-    @foreach (var group in groupedProducts)
-    {
-        var product = group.Key;
-        var quantity = group.Count();
-
-        <div class="card mb-3" style="max-width: 1040px;">
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="@product.ProductImg" class="img-fluid rounded-start" style="cursor:pointer;" alt="..." @onclick="() => ProductDetail(product.ProductId)">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body" style="position:relative;">
-                        <div type="button" class="btn-close" aria-label="Close" style="position:absolute; right:0; top:0; background-color:red; border-radius:1px;" @onclick="() => RemoveProduct(product)"></div>
-                        <h5 class="card-title">@product.Title</h5>
-                        <p class="card-text">@product.ProductDescription</p>
-                        <p class="card-text"><small class="text-body-secondary">Price: PKR @product.ProductPrice</small></p>
-                 
-                        <div class="quantity buttons_added">
-                            <input id="minus" type="button" class="minus" value="-" @onclick="() =>MinusValue(product)">
-                            <input id="theInput" type="number" size="4" class="input-text qty text"@*  value="@sharedservice.ShoppingCart.Where(s=>s.ProductId==product.ProductId).Count()" *@ title="Qty"  min="0" step="1">
-                            <input id="plus" type="button" class="plus" value="+" @onclick="() =>PlusValue(product)">
+<div>
+    <div class="row">
+        <div class="col-lg-6 col-md-12">
+            @if (Products!=null && Products.Any())
+            {
+                @foreach (var product in Products)
+                {
+                    
+                    <div class="card mb-3" style="max-width: 640px;">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                                <img src="@product.ProductImgUrl" class="img-fluid rounded-start" style="cursor:pointer; width:225px; height: -webkit-fill-available;" alt="..." @onclick="() => ProductDetail(product.ProductId)">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body" style="position:relative;">
+                                    <div type="button" class="btn-close" aria-label="Close" style="position:absolute; right:0; top:0; background-color:red; border-radius:1px;" @onclick="() => RemoveAllProducts(product)"></div>
+                                    <h5 class="card-title">@product.Title</h5>
+                                    <p class="card-text">@product.ProductDescription</p>
+                                    <p class="card-text"><small class="text-body-secondary">Price: PKR @product.ProductPrice</small></p>
+                                    <p class="card-text"><small class="text-body-secondary">Sub Total: PKR @GetSubtotal(product)</small></p>
+                                    <div class="quantity buttons_added">
+                                        <input type="button" class="minus" value="-" @onclick="() => ChangeQuantity(product, -1)">
+                                        <input id="quantity-@product.ProductId" type="number" size="4" class="input-text qty text" value="@GetQty(product)" title="Qty" min="0" step="1" @onchange="(e) => UpdateQuantity(product, e)">
+                                        <input type="button" class="plus" value="+" @onclick="() => ChangeQuantity(product, 1)">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
                     </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">
+                    Please add a product.
                 </div>
-            </div>
+            }
         </div>
-    }
-}
-else
-{
-    <div class="alert alert-info" role="alert">
-        Please add a product.
+        <div class="col-lg-6 col-md-12">
+            <!-- Potentially more UI here -->
+        </div>
     </div>
-}
+</div>
 
 @code {
-    private IEnumerable<IGrouping<Product, Product>> groupedProducts;
+    private List<ProductDTO> Products;
     public double TotalPrice { get; set; }
-    private int quantity = 10; // Initialize quantity
 
     protected override void OnInitialized()
     {
-         CalculateTotalPriceForGroupedProducts();
+        CalculateTotalPriceForGroupedProducts();
     }
 
-    private void RemoveProduct(Product product)
+    private void RemoveAllProducts(ProductDTO Product)
     {
-         sharedservice.RemoveProduct(product);
-       CalculateTotalPriceForGroupedProducts();
+        sharedservice.ClearCart(Product);
+        CalculateTotalPriceForGroupedProducts();
         StateHasChanged();
     }
 
@@ -97,33 +101,73 @@ else
 
     private void CalculateTotalPriceForGroupedProducts()
     {
-        var products = sharedservice.GetProducts();
-        groupedProducts = products.GroupBy(p => p)
-                                  .ToList();
+        
+        var products = sharedservice.ShoppingCart.ToList(); // Your original list
 
-        TotalPrice = groupedProducts.Sum(g => g.Key.ProductPrice * g.Count());
+        var seenIds = new HashSet<int>();
+        var distinctProducts = new List<ProductDTO>();
+
+        foreach (var product in products)
+        {
+            if (seenIds.Add(product.ProductId)) // Add returns false if the item already exists
+            {
+                distinctProducts.Add(product);
+            }
+        }
+        Products = distinctProducts;
+        TotalPrice = sharedservice.ShoppingCart.Sum(s => s.ProductPrice);
     }
 
-    private void AdjustQuantity(Product product, int change)
+    private double GetSubtotal(ProductDTO product)
     {
-         CalculateTotalPriceForGroupedProducts();
+        var quantity = sharedservice.ShoppingCart
+            .Where(s => s.ProductId == product.ProductId)
+            .Count();
+        return product.ProductPrice * quantity;
+    }
+
+    public int GetQty(ProductDTO product) => sharedservice.ShoppingCart.Where(s => s.ProductId == product.ProductId).Count();
+    private void ChangeQuantity(ProductDTO product, int change)
+    {
+        if (change > 0)
+        {
+            sharedservice.AddProduct(product);
+        }
+        else if (change < 0)
+        {
+            sharedservice.RemoveProduct(product);
+        }
+
+        CalculateTotalPriceForGroupedProducts();
         StateHasChanged();
     }
 
-    public void MinusValue(Product product)
+    private void UpdateQuantity(ProductDTO product, ChangeEventArgs e)
     {
-        sharedservice.RemoveProduct(product);
-        StateHasChanged(); 
-    }
+        if (int.TryParse(e.Value.ToString(), out var newQuantity))
+        {
+            var currentQuantity = sharedservice.ShoppingCart
+                .Where(s => s.ProductId == product.ProductId)
+                .Count();
 
-    public void PlusValue(Product product)
-    {
-        sharedservice.AddProduct(product);
+            // Adjust the quantity in the cart
+            if (newQuantity > currentQuantity)
+            {
+                for (var i = 0; i < newQuantity - currentQuantity; i++)
+                {
+                    sharedservice.AddProduct(product);
+                }
+            }
+            else if (newQuantity < currentQuantity)
+            {
+                for (var i = 0; i < currentQuantity - newQuantity; i++)
+                {
+                    sharedservice.RemoveProduct(product);
+                }
+            }
+            CalculateTotalPriceForGroupedProducts();
+        }
+
         StateHasChanged();
-        Console.WriteLine(sharedservice.Cardcount);
-
     }
-
-    private int GetProductCount(Product product) => sharedservice.ShoppingCart.Where(s => s.ProductId == product.ProductId).Count(); 
-
 }
