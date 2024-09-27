@@ -81,7 +81,6 @@ namespace ShoppingApi.Controllers
             _dbContext.Products.Remove(product);
             await _dbContext.SaveChangesAsync();
             return Ok(product);
-
         }
 
 

@@ -56,9 +56,7 @@ else
 
         try
         {
-
             products = await http.GetFromJsonAsync<List<ProductDTO>>("https://localhost:7153/Product");
-
         }
         catch (Exception ex)
         {
